@@ -2,10 +2,14 @@ import os
 import requests
 
 WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
+GOOD_MORNING_MESSAGE = os.environ.get(
+    "GOOD_MORNING_MESSAGE",
+    "@everyone Good morning! ☀️ Let's have a nice and productive week & make a bunch of money 💲 so we can spend it all on SKINS!",
+)
 
 
 def send_morning_message():
-    message = "@everyone Good morning! ☀️ Let's have a nice and productive week & make a bunch of money 💲 so we can spend it all on SKINS!"
+    message = GOOD_MORNING_MESSAGE
 
     payload = {"content": message}
 
