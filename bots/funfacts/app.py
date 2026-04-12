@@ -23,7 +23,6 @@ facts = [
     "Axolotls can regenerate their brains, hearts, and limbs.",
     "Crows can remember human faces and hold grudges for years.",
     "Elephants are the only animals that can't jump, but they can communicate through vibrations in the ground felt through their feet.",
-
     # Space
     "There are more stars in the observable universe than grains of sand on all of Earth's beaches.",
     "A day on Venus is longer than a year on Venus — it takes 243 Earth days to rotate once but only 225 days to orbit the Sun.",
@@ -39,7 +38,6 @@ facts = [
     "The Voyager 1 spacecraft, launched in 1977, is the farthest human-made object from Earth — over 15 billion miles away.",
     "There are rogue planets that float through space without orbiting any star.",
     "Olympus Mons on Mars is the tallest known volcano in the solar system — nearly three times the height of Mount Everest.",
-
     # Human body
     "Your body produces about 25 million new cells each second.",
     "The human nose can detect over 1 trillion different scents.",
@@ -51,7 +49,6 @@ facts = [
     "Your body contains about 37.2 trillion cells.",
     "Nerve impulses travel at speeds up to 250 mph.",
     "The human eye can distinguish approximately 10 million different colors.",
-
     # History
     "Cleopatra lived closer in time to the Moon landing than to the construction of the Great Pyramid of Giza.",
     "Oxford University is older than the Aztec Empire — teaching began at Oxford around 1096, while the Aztec Empire was founded in 1428.",
@@ -63,7 +60,6 @@ facts = [
     "Napoleon was once attacked by a horde of rabbits during a rabbit hunt organized for his amusement.",
     "The ancient Egyptians used slabs of stone as pillows.",
     "Woolly mammoths were still alive when the Great Pyramid of Giza was being built.",
-
     # Science
     "Hot water freezes faster than cold water under certain conditions — a phenomenon known as the Mpemba effect.",
     "A single bolt of lightning contains enough energy to toast 100,000 slices of bread.",
@@ -75,7 +71,6 @@ facts = [
     "There are more possible iterations of a game of chess than there are atoms in the observable universe.",
     "A photon of light takes about 8 minutes to travel from the Sun to Earth, but it can take 100,000 years to travel from the Sun's core to its surface.",
     "Diamond rain falls on Saturn and Jupiter.",
-
     # Geography & Nature
     "There's a lake in Australia called Lake Hillier that is naturally bright pink.",
     "Russia has a larger surface area than Pluto.",
@@ -87,7 +82,6 @@ facts = [
     "There's enough water in Lake Superior to cover all of North and South America in one foot of water.",
     "Lightning strikes Earth about 100 times every second.",
     "The Sahara Desert is roughly the same size as the entire United States.",
-
     # Everyday & Pop Culture
     "The inventor of the Pringles can is buried in one — Fredric Baur's ashes were placed in a Pringles can per his request.",
     "A jiffy is an actual unit of time — it's 1/100th of a second.",
@@ -99,7 +93,6 @@ facts = [
     "Bubble wrap was originally invented as wallpaper.",
     "The average cloud weighs about 1.1 million pounds.",
     "It rains diamonds on Neptune and Uranus.",
-
     # Food
     "Strawberries aren't actually berries, but bananas, avocados, and watermelons are.",
     "It takes about 70 licks to get to the center of a Tootsie Pop.",
@@ -111,7 +104,6 @@ facts = [
     "A single saffron flower yields only three threads of saffron, which is why it's the most expensive spice in the world.",
     "Cashews grow on the bottom of cashew apples.",
     "Lemons contain more sugar than strawberries.",
-
     # Technology
     "The first computer virus was created in 1983 and was called the 'Elk Cloner.'",
     "More people in the world have access to a mobile phone than to a toilet.",
@@ -162,12 +154,15 @@ def send_fact():
         WEBHOOK_URL,
         json=payload,
         headers={"Content-Type": "application/json"},
+        timeout=10,
     )
 
-    if response.status_code == 204:
+    if response.status_code == 204 or response.status_code == 200:
         print(f"Successfully sent fact: {fact[:60]}...")
+        exit(0)
     else:
         print(f"Failed to send: {response.status_code} - {response.text}")
+        exit(1)
 
 
 if __name__ == "__main__":
