@@ -10,7 +10,10 @@ def send_morning_message():
     payload = {"content": message}
 
     response = requests.post(
-        WEBHOOK_URL, json=payload, headers={"Content-Type": "application/json"}
+        WEBHOOK_URL,
+        json=payload,
+        headers={"Content-Type": "application/json"},
+        timeout=10,
     )
 
     if response.status_code == 204 or response.status_code == 200:
