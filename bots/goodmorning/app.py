@@ -20,9 +20,10 @@ def send_morning_message():
         timeout=10,
     )
 
-    if response.status_code == 204 or response.status_code == 200:
-        print("Successfully sent good morning message")
-    else:
+	if response.status_code == 204 or response.status_code == 200:
+		print("Successfully sent good morning message")
+		exit(0)
+	else:
         print("Failed to send good morning message")
         print(f"Status code: {response.status_code}")
         print(f"Response: {response.text}")
