@@ -1,0 +1,748 @@
+import os
+import random
+import requests
+import json
+
+# Discord webhook URL
+WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
+
+# File to track which words have been used
+USED_WORDS_FILE = "used_words.json"
+
+words = [
+    ("Abstruse", "adj.", "difficult to comprehend; obscure."),
+    (
+        "Accretion",
+        "n.",
+        "the process of growth or increase by the gradual accumulation of additional layers or matter.",
+    ),
+    ("Acerbic", "adj.", "sharp and forthright in tone; often bitter or harsh."),
+    (
+        "Acumen",
+        "n.",
+        "the ability to make good judgments and quick decisions, typically in a particular domain.",
+    ),
+    ("Adumbrate", "v.", "to outline or indicate faintly; to foreshadow."),
+    ("Aegis", "n.", "protection, backing, or support of a powerful entity."),
+    ("Alacrity", "n.", "brisk and cheerful readiness."),
+    (
+        "Anachronism",
+        "n.",
+        "something placed or occurring in a time period to which it does not belong.",
+    ),
+    (
+        "Anathema",
+        "n.",
+        "something or someone that is intensely disliked or loathed; a formal curse.",
+    ),
+    ("Antecedent", "n.", "a preceding event, condition, or cause."),
+    (
+        "Antediluvian",
+        "adj.",
+        "of or belonging to a period before a major event; extremely old or outdated.",
+    ),
+    ("Antipathy", "n.", "a deep-seated feeling of aversion."),
+    (
+        "Apocryphal",
+        "adj.",
+        "of doubtful authenticity, though widely circulated as true.",
+    ),
+    ("Apposite", "adj.", "apt in the circumstances; highly relevant."),
+    (
+        "Arduous",
+        "adj.",
+        "involving or requiring strenuous effort; difficult and tiring.",
+    ),
+    ("Assiduous", "adj.", "showing great care, attention, and perseverance."),
+    (
+        "Atavistic",
+        "adj.",
+        "relating to the reappearance of ancestral traits after being absent for generations.",
+    ),
+    ("Auspicious", "adj.", "conducive to success; favorable."),
+    (
+        "Autarky",
+        "n.",
+        "a system of self-sufficiency, especially at the national level.",
+    ),
+    ("Bellicose", "adj.", "demonstrating aggression and willingness to fight."),
+    ("Benevolent", "adj.", "well meaning and kindly."),
+    ("Bilious", "adj.", "affected by or associated with nausea; ill-tempered."),
+    (
+        "Blandishment",
+        "n.",
+        "a flattering or pleasing statement or action used to persuade.",
+    ),
+    ("Bombastic", "adj.", "high-sounding but with little meaning; inflated in style."),
+    (
+        "Bucolic",
+        "adj.",
+        "relating to the pleasant aspects of the countryside and rural life.",
+    ),
+    (
+        "Burnish",
+        "v.",
+        "to polish by rubbing; to enhance or improve the quality or reputation of.",
+    ),
+    (
+        "Calumny",
+        "n.",
+        "the making of false and defamatory statements in order to damage a reputation.",
+    ),
+    (
+        "Canonical",
+        "adj.",
+        "in accordance with established rules, principles, or standards.",
+    ),
+    (
+        "Capricious",
+        "adj.",
+        "given to sudden and unaccountable changes of mood or behavior.",
+    ),
+    ("Castigate", "v.", "to reprimand or criticize severely."),
+    ("Cavil", "v.", "to raise trivial or frivolous objections."),
+    (
+        "Chicanery",
+        "n.",
+        "the use of trickery to achieve a political, financial, or legal purpose.",
+    ),
+    ("Circumspect", "adj.", "wary and unwilling to take risks."),
+    (
+        "Circumlocution",
+        "n.",
+        "the use of many words where fewer would do; indirect expression.",
+    ),
+    ("Cogent", "adj.", "clear, logical, and convincing."),
+    (
+        "Commensurate",
+        "adj.",
+        "corresponding in size, extent, or degree; proportionate.",
+    ),
+    (
+        "Compunction",
+        "n.",
+        "a feeling of guilt or moral scruple that prevents or follows wrongdoing.",
+    ),
+    (
+        "Conflagration",
+        "n.",
+        "an extensive fire that destroys a great deal of land or property.",
+    ),
+    (
+        "Connoisseur",
+        "n.",
+        "an expert judge in matters of taste, especially in the arts or fine food.",
+    ),
+    ("Contumacious", "adj.", "stubbornly or willfully disobedient to authority."),
+    ("Corollary", "n.", "a proposition that follows from one already proved."),
+    ("Credulous", "adj.", "having or showing too great a readiness to believe things."),
+    ("Cursory", "adj.", "hasty and therefore not thorough or detailed."),
+    ("Deleterious", "adj.", "causing harm or damage."),
+    (
+        "Demagogue",
+        "n.",
+        "a political leader who seeks support by appealing to desires and prejudices rather than rational argument.",
+    ),
+    ("Denigrate", "v.", "to criticize unfairly; to defame."),
+    ("Desultory", "adj.", "lacking a plan, purpose, or enthusiasm; unfocused."),
+    ("Diaphanous", "adj.", "light, delicate, and translucent."),
+    (
+        "Didactic",
+        "adj.",
+        "intended to teach, particularly in a moralizing or patronizing way.",
+    ),
+    ("Diffident", "adj.", "modest or shy because of a lack of self-confidence."),
+    ("Dilatory", "adj.", "intended to cause delay."),
+    ("Disparate", "adj.", "essentially different in kind; not allowing comparison."),
+    (
+        "Dissemble",
+        "v.",
+        "to conceal or disguise one's true motives, feelings, or beliefs.",
+    ),
+    (
+        "Dissident",
+        "n.",
+        "a person who opposes official policy, especially that of an authoritarian state.",
+    ),
+    ("Dogmatic", "adj.", "inclined to lay down principles as incontrovertibly true."),
+    ("Ebullient", "adj.", "cheerful and full of energy."),
+    (
+        "Eclectic",
+        "adj.",
+        "deriving ideas, style, or taste from a broad and diverse range of sources.",
+    ),
+    ("Effervescent", "adj.", "vivacious and enthusiastic."),
+    ("Egregious", "adj.", "outstandingly bad; shocking."),
+    ("Elucidate", "v.", "to make something clear; to explain."),
+    ("Enervate", "v.", "to cause someone to feel drained of energy; to weaken."),
+    (
+        "Ennui",
+        "n.",
+        "a feeling of weariness and dissatisfaction arising from lack of occupation or excitement.",
+    ),
+    ("Ephemeral", "adj.", "lasting for a very short time."),
+    ("Equanimity", "n.", "mental calmness, composure, and evenness of temper."),
+    ("Erudite", "adj.", "having or showing great knowledge or learning."),
+    (
+        "Esoteric",
+        "adj.",
+        "intended for or likely to be understood by only a small number of people with specialized knowledge.",
+    ),
+    ("Exculpate", "v.", "to show or declare that someone is not guilty of wrongdoing."),
+    ("Exigent", "adj.", "pressing; demanding immediate attention."),
+    (
+        "Extrapolate",
+        "v.",
+        "to extend the application of a method or conclusion beyond the known range.",
+    ),
+    (
+        "Facetious",
+        "adj.",
+        "treating serious issues with deliberately inappropriate humor.",
+    ),
+    ("Fallacious", "adj.", "based on a mistaken belief or unsound argument."),
+    ("Fatuous", "adj.", "silly and pointless."),
+    ("Felicitous", "adj.", "well chosen or suited to the circumstances."),
+    ("Flippant", "adj.", "not showing a serious or respectful attitude."),
+    ("Forbearance", "n.", "patient self-control; restraint and tolerance."),
+    ("Fortuitous", "adj.", "happening by chance rather than intention."),
+    ("Fractious", "adj.", "irritable and quarrelsome."),
+    ("Garrulous", "adj.", "excessively talkative, especially about trivial matters."),
+    ("Germane", "adj.", "relevant to a subject under consideration."),
+    ("Grandiloquent", "adj.", "pompous or extravagant in language, style, or manner."),
+    ("Gregarious", "adj.", "fond of company; sociable."),
+    (
+        "Hackneyed",
+        "adj.",
+        "lacking significance through having been overused; unoriginal.",
+    ),
+    ("Harangue", "n.", "a lengthy and aggressive speech."),
+    (
+        "Hedonistic",
+        "adj.",
+        "engaged in the pursuit of pleasure; sensually self-indulgent.",
+    ),
+    (
+        "Hegemony",
+        "n.",
+        "leadership or dominance, especially by one state or social group over others.",
+    ),
+    ("Hyperbolic", "adj.", "relating to or characterized by exaggeration."),
+    (
+        "Iconoclast",
+        "n.",
+        "a person who attacks or criticizes cherished beliefs or institutions.",
+    ),
+    (
+        "Idiosyncratic",
+        "adj.",
+        "peculiar or individual; characteristic of a particular person.",
+    ),
+    ("Immutable", "adj.", "unchanging over time or unable to be changed."),
+    ("Impassive", "adj.", "not revealing any emotion."),
+    ("Impecunious", "adj.", "having little or no money."),
+    ("Implacable", "adj.", "unable to be appeased or pacified."),
+    ("Implicit", "adj.", "implied though not plainly expressed."),
+    (
+        "Impute",
+        "v.",
+        "to represent something undesirable as being done or possessed by someone.",
+    ),
+    ("Inchoate", "adj.", "just begun and not fully formed or developed."),
+    ("Incorrigible", "adj.", "not able to be corrected or reformed."),
+    ("Indolent", "adj.", "wanting to avoid activity; lazy."),
+    ("Ineffable", "adj.", "too great or extreme to be expressed in words."),
+    ("Inexorable", "adj.", "impossible to stop or prevent."),
+    (
+        "Ingenuous",
+        "adj.",
+        "innocent and unsuspecting; showing simplicity and frankness.",
+    ),
+    ("Inimical", "adj.", "tending to obstruct or harm; unfriendly or hostile."),
+    ("Insatiable", "adj.", "impossible to satisfy; incapable of being appeased."),
+    (
+        "Insidious",
+        "adj.",
+        "proceeding in a gradual, subtle way but with harmful effects.",
+    ),
+    ("Intrepid", "adj.", "fearless; characterized by resolute courage."),
+    (
+        "Intransigent",
+        "adj.",
+        "unwilling or refusing to change one's views or to agree about something.",
+    ),
+    ("Invective", "n.", "insulting, abusive, or highly critical language."),
+    ("Irascible", "adj.", "having or showing a tendency to be easily angered."),
+    ("Juxtapose", "v.", "to place or deal with close together for contrasting effect."),
+    (
+        "Laconic",
+        "adj.",
+        "using very few words; concise to the point of seeming abrupt.",
+    ),
+    (
+        "Languid",
+        "adj.",
+        "displaying a disinclination for physical exertion or effort; lacking energy.",
+    ),
+    ("Lethargic", "adj.", "affected by lethargy; sluggish and apathetic."),
+    ("Loquacious", "adj.", "tending to talk a great deal; talkative."),
+    (
+        "Magnanimous",
+        "adj.",
+        "generous or forgiving, especially toward a rival or less powerful person.",
+    ),
+    ("Malevolent", "adj.", "having or showing a wish to do evil to others."),
+    ("Malleable", "adj.", "easily influenced; pliable."),
+    ("Mendacious", "adj.", "not telling the truth; lying."),
+    (
+        "Mercurial",
+        "adj.",
+        "subject to sudden or unpredictable changes of mood or mind.",
+    ),
+    ("Mitigate", "v.", "to make less severe, serious, or painful."),
+    ("Morose", "adj.", "sullen and ill-tempered."),
+    ("Munificent", "adj.", "more generous than is usual or necessary."),
+    ("Myopic", "adj.", "lacking imagination, foresight, or intellectual insight."),
+    (
+        "Nascent",
+        "adj.",
+        "just coming into existence; beginning to display signs of future potential.",
+    ),
+    ("Negligible", "adj.", "so small or unimportant as to be not worth considering."),
+    ("Neophyte", "n.", "a person who is new to a subject, skill, or belief."),
+    ("Nonchalant", "adj.", "feeling or appearing casually calm and relaxed."),
+    ("Noxious", "adj.", "harmful, poisonous, or very unpleasant."),
+    (
+        "Obdurate",
+        "adj.",
+        "stubbornly refusing to change one's opinion or course of action.",
+    ),
+    ("Obfuscate", "v.", "to render obscure, unclear, or unintelligible."),
+    ("Obsequious", "adj.", "obedient or attentive to an excessive or servile degree."),
+    (
+        "Obstinate",
+        "adj.",
+        "stubbornly refusing to change one's opinion despite attempts to persuade.",
+    ),
+    ("Onerous", "adj.", "involving a great deal of effort, trouble, or difficulty."),
+    ("Ostensible", "adj.", "stated or appearing to be true, but not necessarily so."),
+    (
+        "Ostentatious",
+        "adj.",
+        "characterized by vulgar or pretentious display; designed to impress.",
+    ),
+    ("Paradigm", "n.", "a typical example or pattern of something; a model."),
+    (
+        "Paragon",
+        "n.",
+        "a person or thing regarded as a perfect example of a particular quality.",
+    ),
+    ("Parochial", "adj.", "having a limited or narrow outlook or scope; provincial."),
+    (
+        "Paucity",
+        "n.",
+        "the presence of something in only small or insufficient quantities.",
+    ),
+    (
+        "Pedantic",
+        "adj.",
+        "excessively concerned with minor details or rules, often in a showy way.",
+    ),
+    ("Pejorative", "adj.", "expressing contempt or disapproval."),
+    (
+        "Perfunctory",
+        "adj.",
+        "carried out with a minimum of effort or reflection; superficial.",
+    ),
+    (
+        "Peripatetic",
+        "adj.",
+        "traveling from place to place, especially for work or pleasure.",
+    ),
+    ("Permeate", "v.", "to spread throughout something; to pervade."),
+    (
+        "Pernicious",
+        "adj.",
+        "having a harmful effect, especially in a gradual or subtle way.",
+    ),
+    (
+        "Perspicacious",
+        "adj.",
+        "having a ready insight into and understanding of things.",
+    ),
+    (
+        "Pertinacious",
+        "adj.",
+        "holding firmly to an opinion or course of action; persistent.",
+    ),
+    ("Phlegmatic", "adj.", "having an unemotional and stolidly calm disposition."),
+    ("Pithy", "adj.", "concise and forcefully expressive."),
+    (
+        "Platitude",
+        "n.",
+        "a remark or statement that has been used too often to be interesting or thoughtful.",
+    ),
+    ("Plethora", "n.", "a large or excessive amount of something."),
+    (
+        "Poignant",
+        "adj.",
+        "evoking a keen sense of sadness or regret; emotionally moving.",
+    ),
+    ("Polemic", "n.", "a strong verbal or written attack on someone or something."),
+    (
+        "Pragmatic",
+        "adj.",
+        "dealing with things sensibly and realistically based on practical considerations.",
+    ),
+    (
+        "Precarious",
+        "adj.",
+        "not securely held or in position; dependent on chance; unstable.",
+    ),
+    ("Preclude", "v.", "to prevent something from happening; to make impossible."),
+    (
+        "Predilection",
+        "n.",
+        "a preference or special liking for something; a bias in favor of something.",
+    ),
+    (
+        "Prescient",
+        "adj.",
+        "having or showing knowledge of events before they take place.",
+    ),
+    (
+        "Pretentious",
+        "adj.",
+        "attempting to impress by affecting greater importance or merit than actually possessed.",
+    ),
+    (
+        "Proclivity",
+        "n.",
+        "a tendency to choose or do something regularly; an inclination.",
+    ),
+    ("Profligate", "adj.", "recklessly extravagant or wasteful."),
+    ("Prolific", "adj.", "producing many works, results, or offspring."),
+    (
+        "Propensity",
+        "n.",
+        "an inclination or natural tendency to behave in a particular way.",
+    ),
+    ("Propitious", "adj.", "giving or indicating a good chance of success; favorable."),
+    ("Prosaic", "adj.", "lacking poetic beauty; dull or ordinary."),
+    ("Protean", "adj.", "able to change frequently or easily; versatile."),
+    ("Provincial", "adj.", "limited in outlook; unsophisticated or narrow-minded."),
+    ("Puerile", "adj.", "childishly silly or trivial."),
+    ("Quixotic", "adj.", "exceedingly idealistic; unrealistic and impractical."),
+    (
+        "Recalcitrant",
+        "adj.",
+        "having an obstinately uncooperative attitude toward authority or discipline.",
+    ),
+    ("Recondite", "adj.", "little known; abstruse."),
+    ("Redundant", "adj.", "not or no longer needed; superfluous."),
+    ("Relegate", "v.", "to consign or dismiss to an inferior rank or position."),
+    ("Remonstrate", "v.", "to make a forcefully reproachful protest."),
+    (
+        "Repudiate",
+        "v.",
+        "to refuse to accept or be associated with; to deny the truth or validity of.",
+    ),
+    ("Rescind", "v.", "to revoke, cancel, or repeal a law, order, or agreement."),
+    (
+        "Resilient",
+        "adj.",
+        "able to withstand or recover quickly from difficult conditions.",
+    ),
+    ("Reticent", "adj.", "not revealing one's thoughts or feelings readily; reserved."),
+    ("Reverent", "adj.", "feeling or showing deep respect."),
+    (
+        "Sanguine",
+        "adj.",
+        "optimistic or positive, especially in a difficult situation.",
+    ),
+    ("Sapient", "adj.", "wise or attempting to appear wise."),
+    ("Sardonic", "adj.", "grimly mocking or cynical."),
+    (
+        "Scintillating",
+        "adj.",
+        "brilliantly and excitingly clever or skillful; sparkling.",
+    ),
+    (
+        "Scrupulous",
+        "adj.",
+        "very concerned to avoid doing wrong; diligent and thorough.",
+    ),
+    ("Sedulous", "adj.", "showing dedication and diligence."),
+    ("Spurious", "adj.", "not being what it purports to be; false or fake."),
+    ("Stolid", "adj.", "calm, dependable, and showing little emotion."),
+    ("Strident", "adj.", "loud and harsh; grating."),
+    (
+        "Supercilious",
+        "adj.",
+        "behaving or looking as though one thinks one is superior to others.",
+    ),
+    ("Taciturn", "adj.", "reserved or uncommunicative in speech; saying little."),
+    ("Tantamount", "adj.", "equivalent in seriousness to; virtually the same as."),
+    ("Temerity", "n.", "excessive confidence or boldness; audacity."),
+    ("Tenacious", "adj.", "tending to keep a firm hold of something; persistent."),
+    ("Tenuous", "adj.", "very weak or slight."),
+    ("Torpor", "n.", "a state of physical or mental inactivity; lethargy."),
+    ("Truculent", "adj.", "eager or quick to argue or fight; aggressively defiant."),
+    ("Ubiquitous", "adj.", "present, appearing, or found everywhere."),
+    ("Unctuous", "adj.", "excessively flattering or ingratiating; oily."),
+    ("Vacillate", "v.", "to waver between different opinions or actions."),
+    ("Venerate", "v.", "to regard with great respect or reverence."),
+    ("Vociferous", "adj.", "expressing opinions or feelings loudly and forcefully."),
+    (
+        "Volatile",
+        "adj.",
+        "liable to change rapidly and unpredictably, especially for the worse.",
+    ),
+    ("Wane", "v.", "to decrease in vigor, power, or extent."),
+    ("Wary", "adj.", "feeling or showing caution about possible dangers or problems."),
+    (
+        "Zealous",
+        "adj.",
+        "having or showing great energy or enthusiasm in pursuit of a cause.",
+    ),
+    ("Abnegation", "n.", "the act of renouncing or rejecting something; self-denial."),
+    (
+        "Abscond",
+        "v.",
+        "to leave hurriedly and secretly, typically to avoid detection or arrest.",
+    ),
+    ("Abstemious", "adj.", "not self-indulgent, especially when eating or drinking."),
+    ("Accost", "v.", "to approach and address someone boldly or aggressively."),
+    ("Acrimony", "n.", "bitterness or ill feeling in speech or behavior."),
+    ("Adroit", "adj.", "clever or skillful in using the hands or mind."),
+    ("Adulation", "n.", "excessive praise or admiration."),
+    ("Affable", "adj.", "friendly, good-natured, and easy to talk to."),
+    ("Affront", "n.", "an action or remark that causes outrage."),
+    ("Aggrandize", "v.", "to increase the power, status, or wealth of."),
+    ("Ameliorate", "v.", "to make something bad or unsatisfactory better."),
+    ("Animosity", "n.", "strong hostility."),
+    ("Anodyne", "adj.", "not likely to provoke dissent; something that relieves pain."),
+    ("Antagonize", "v.", "to cause someone to become hostile."),
+    (
+        "Antithesis",
+        "n.",
+        "a person or thing that is the direct opposite of someone or something else.",
+    ),
+    ("Apathy", "n.", "lack of interest, enthusiasm, or concern."),
+    ("Apotheosis", "n.", "the highest point in the development of something."),
+    ("Ardent", "adj.", "enthusiastic or passionate."),
+    (
+        "Artifice",
+        "n.",
+        "clever or cunning devices or expedients, especially used to trick or deceive.",
+    ),
+    (
+        "Ascetic",
+        "adj.",
+        "characterized by severe self-discipline and abstention from indulgence.",
+    ),
+    ("Aspersion", "n.", "an attack on the reputation or integrity of someone."),
+    ("Assuage", "v.", "to make an unpleasant feeling less intense; to relieve."),
+    ("Attenuate", "v.", "to reduce the force, effect, or value of something."),
+    ("Audacious", "adj.", "showing a willingness to take bold risks; bold or daring."),
+    ("Augment", "v.", "to make something greater by adding to it."),
+    ("Avarice", "n.", "extreme greed for wealth or material gain."),
+    ("Baleful", "adj.", "threatening harm; menacing."),
+    ("Banal", "adj.", "so lacking in originality as to be obvious and boring."),
+    ("Belligerent", "adj.", "hostile and aggressive."),
+    (
+        "Blithe",
+        "adj.",
+        "showing a casual and cheerful indifference considered to be callous or improper.",
+    ),
+    ("Bolster", "v.", "to support or strengthen."),
+    ("Brusque", "adj.", "abrupt or offhand in speech or manner."),
+    ("Cacophony", "n.", "a harsh, discordant mixture of sounds."),
+    ("Cajole", "v.", "to persuade someone by flattery or coaxing."),
+    (
+        "Callous",
+        "adj.",
+        "showing or having an insensitive and cruel disregard for others.",
+    ),
+    ("Candor", "n.", "the quality of being open and honest in expression."),
+    ("Capitulate", "v.", "to cease to resist an opponent; to surrender."),
+    ("Catharsis", "n.", "the process of releasing strong or repressed emotions."),
+    ("Caustic", "adj.", "able to burn or corrode; sarcastic in a scathing way."),
+    ("Censure", "n.", "expression of strong disapproval; a formal reprimand."),
+    ("Churlish", "adj.", "rude in a mean-spirited and surly way."),
+    ("Clandestine", "adj.", "kept secret or done secretively."),
+    ("Coerce", "v.", "to persuade an unwilling person by force or threats."),
+    ("Cogitate", "v.", "to think deeply about something."),
+    ("Collusion", "n.", "secret or illegal cooperation for a deceitful purpose."),
+    ("Complacent", "adj.", "showing smug or uncritical satisfaction with oneself."),
+    ("Conciliatory", "adj.", "intended to placate or pacify."),
+    ("Conjecture", "n.", "an opinion or conclusion formed without complete evidence."),
+    ("Conscientious", "adj.", "wishing to do one's work or duty well and thoroughly."),
+    ("Contentious", "adj.", "likely to cause disagreement or argument."),
+    ("Contrite", "adj.", "feeling or expressing remorse or penitence."),
+    ("Copious", "adj.", "abundant in supply or quantity."),
+    ("Corroborate", "v.", "to confirm or give support to a statement or theory."),
+    ("Credence", "n.", "belief in or acceptance of something as true."),
+    ("Culpable", "adj.", "deserving blame."),
+    ("Curtail", "v.", "to reduce in extent or quantity."),
+    ("Debacle", "n.", "a sudden and ignominious failure."),
+    ("Debilitate", "v.", "to make weak or infirm."),
+    ("Decorum", "n.", "behavior in keeping with good taste and propriety."),
+    ("Decry", "v.", "to publicly denounce."),
+    ("Deference", "n.", "humble submission and respect."),
+    ("Defunct", "adj.", "no longer existing or functioning."),
+    ("Delineate", "v.", "to describe or portray precisely."),
+    ("Demur", "v.", "to raise doubts or objections."),
+    ("Denouement", "n.", "the final resolution of the plot of a story."),
+    ("Deprecate", "v.", "to express disapproval of; to belittle."),
+    ("Deride", "v.", "to express contempt for; to ridicule."),
+    ("Despotism", "n.", "the exercise of absolute power, especially in a cruel way."),
+    ("Detrimental", "adj.", "tending to cause harm."),
+    ("Diatribe", "n.", "a forceful and bitter verbal attack."),
+    ("Disabuse", "v.", "to persuade someone that an idea is mistaken."),
+    ("Discerning", "adj.", "having or showing good judgment."),
+    ("Disparage", "v.", "to regard or represent as being of little worth."),
+    ("Dispassionate", "adj.", "not influenced by strong emotion; impartial."),
+    ("Disseminate", "v.", "to spread widely."),
+    ("Dissonance", "n.", "a lack of harmony among musical notes or ideas."),
+    ("Divulge", "v.", "to make known private or sensitive information."),
+    ("Dormant", "adj.", "having normal physical functions suspended; inactive."),
+    ("Duplicity", "n.", "deceitfulness; double-dealing."),
+    ("Edify", "v.", "to instruct or improve morally or intellectually."),
+    ("Effrontery", "n.", "insolent or impertinent behavior."),
+    ("Elicit", "v.", "to draw out a response or information."),
+    ("Embellish", "v.", "to make more attractive by adding details."),
+    ("Empirical", "adj.", "based on observation or experience rather than theory."),
+    ("Encroach", "v.", "to intrude on another's territory or rights."),
+    (
+        "Endemic",
+        "adj.",
+        "regularly found among particular people or in a certain area.",
+    ),
+    (
+        "Enigma",
+        "n.",
+        "a person or thing that is mysterious or difficult to understand.",
+    ),
+    ("Ennoble", "v.", "to make noble in character or status."),
+    ("Epitome", "n.", "a person or thing that is a perfect example of a quality."),
+    ("Equivocate", "v.", "to use ambiguous language to conceal the truth."),
+    ("Erstwhile", "adj.", "former; in the past."),
+    ("Ethereal", "adj.", "extremely delicate and light; not of this world."),
+    (
+        "Euphemism",
+        "n.",
+        "a mild or indirect word substituted for one considered harsh.",
+    ),
+    ("Exacerbate", "v.", "to make a problem or situation worse."),
+    ("Exhort", "v.", "to strongly encourage or urge."),
+    ("Exonerate", "v.", "to absolve from blame."),
+    ("Expunge", "v.", "to erase or remove completely."),
+    ("Extant", "adj.", "still in existence."),
+    ("Extol", "v.", "to praise enthusiastically."),
+    ("Extraneous", "adj.", "irrelevant or unrelated to the subject."),
+    ("Exuberant", "adj.", "filled with lively energy and excitement."),
+    ("Facile", "adj.", "appearing neat but superficial or simplistic."),
+    ("Fastidious", "adj.", "very attentive to detail; hard to please."),
+    ("Fervent", "adj.", "having or displaying passionate intensity."),
+    ("Flagrant", "adj.", "conspicuously or obviously offensive."),
+    ("Florid", "adj.", "excessively elaborate or ornate."),
+    ("Foment", "v.", "to instigate or stir up trouble."),
+    ("Frugal", "adj.", "economical in use or expenditure."),
+    ("Gainsay", "v.", "to deny or contradict."),
+    ("Glib", "adj.", "fluent but insincere or shallow."),
+    ("Goad", "v.", "to provoke or annoy into action."),
+    ("Guile", "n.", "sly or cunning intelligence."),
+    ("Gullible", "adj.", "easily persuaded to believe something."),
+    ("Halcyon", "adj.", "denoting a period of time that was idyllically happy."),
+    ("Hapless", "adj.", "unfortunate."),
+    ("Heinous", "adj.", "utterly odious or wicked."),
+    ("Heresy", "n.", "belief contrary to established doctrine."),
+    ("Iconoclastic", "adj.", "attacking or challenging established beliefs."),
+    ("Imbue", "v.", "to inspire or permeate with a feeling or quality."),
+    ("Impetuous", "adj.", "acting quickly without thought or care."),
+    ("Inane", "adj.", "silly; lacking sense or meaning."),
+    ("Incisive", "adj.", "intelligently analytical and clear-thinking."),
+    ("Indefatigable", "adj.", "persisting tirelessly."),
+    ("Indignant", "adj.", "feeling anger at perceived injustice."),
+    ("Ingratiate", "v.", "to bring oneself into favor with someone by flattery."),
+    ("Inscrutable", "adj.", "impossible to understand or interpret."),
+    ("Inured", "adj.", "accustomed to something unpleasant."),
+    (
+        "Inveterate",
+        "adj.",
+        "having a particular habit or activity that is long-established.",
+    ),
+    ("Invincible", "adj.", "too powerful to be defeated."),
+    ("Jocular", "adj.", "fond of or characterized by joking."),
+    ("Judicious", "adj.", "having or showing good judgment."),
+    ("Kudos", "n.", "praise and honor received for an achievement."),
+]
+
+
+def load_used_words():
+    """Load the list of used word indices from file."""
+    if os.path.exists(USED_WORDS_FILE):
+        try:
+            with open(USED_WORDS_FILE, "r") as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+
+def save_used_words(used_words):
+    """Save the list of used word indices to file."""
+    with open(USED_WORDS_FILE, "w") as f:
+        json.dump(used_words, f)
+
+
+def get_next_word():
+    """Get the next unused word. If all words have been used, reset the list."""
+    used_words = load_used_words()
+
+    # If all words have been used, reset
+    if len(used_words) >= len(words):
+        used_words = []
+
+    # Get available words
+    available_indices = [i for i in range(len(words)) if i not in used_words]
+
+    # Pick a random word from available ones
+    word_index = random.choice(available_indices)
+    used_words.append(word_index)
+    save_used_words(used_words)
+
+    return words[word_index]
+
+
+def send_word_of_the_day():
+    """Send the word of the day to Discord via webhook."""
+    word, pos, definition = get_next_word()
+
+    message = (
+        f"📖 **Word of the Day: {word}**\n"
+        f"**Part of Speech:** {pos}\n"
+        f"**Definition:** {definition}"
+    )
+
+    payload = {"content": message}
+
+    response = requests.post(
+        WEBHOOK_URL,
+        json=payload,
+        headers={"Content-Type": "application/json"},
+        timeout=10,
+    )
+
+    if response.status_code == 204 or response.status_code == 200:
+        print(f"Successfully sent word: {word}")
+    else:
+        print(f"Failed to send word: {word}")
+        print(f"Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+        exit(1)
+
+
+if __name__ == "__main__":
+    send_word_of_the_day()
