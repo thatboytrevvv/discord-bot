@@ -6,6 +6,10 @@ Discord webhook bots deployed on Railway.
 
 ```
 bots/
+├── funfacts/         # Random fun fact of the day (daily)
+│   ├── app.py
+│   ├── railway.json
+│   └── requirements.txt
 ├── goodmorning/      # Daily good morning message (Mondays)
 │   ├── app.py
 │   ├── railway.json

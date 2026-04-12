@@ -1,13 +1,10 @@
 import os
 import random
 import requests
-import json
+from datetime import date
 
 # Discord webhook URL
 WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
-
-# File to track which words have been used
-USED_WORDS_FILE = "used_words.json"
 
 words = [
     ("Abstruse", "adj.", "difficult to comprehend; obscure."),
@@ -680,40 +677,22 @@ words = [
 ]
 
 
-def load_used_words():
-    """Load the list of used word indices from file."""
-    if os.path.exists(USED_WORDS_FILE):
-        try:
-            with open(USED_WORDS_FILE, "r") as f:
-                return json.load(f)
-        except:
-            return []
-    return []
-
-
-def save_used_words(used_words):
-    """Save the list of used word indices to file."""
-    with open(USED_WORDS_FILE, "w") as f:
-        json.dump(used_words, f)
-
-
 def get_next_word():
-    """Get the next unused word. If all words have been used, reset the list."""
-    used_words = load_used_words()
+    """Pick a word based on today's date — deterministic, no storage needed.
 
-    # If all words have been used, reset
-    if len(used_words) >= len(words):
-        used_words = []
+    Uses the number of days since an epoch to walk through a shuffled
+    copy of the words list. The shuffle is seeded so the order is
+    fixed but non-obvious, and the list cycles once all words are used.
+    """
+    epoch = date(2025, 1, 1)
+    day_number = (date.today() - epoch).days
 
-    # Get available words
-    available_indices = [i for i in range(len(words)) if i not in used_words]
+    # Seed a local RNG so the shuffle is always the same
+    rng = random.Random(42)
+    indices = list(range(len(words)))
+    rng.shuffle(indices)
 
-    # Pick a random word from available ones
-    word_index = random.choice(available_indices)
-    used_words.append(word_index)
-    save_used_words(used_words)
-
-    return words[word_index]
+    return words[indices[day_number % len(words)]]
 
 
 def send_word_of_the_day():
