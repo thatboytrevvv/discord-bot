@@ -1,0 +1,36 @@
+# Pre-commit hooks configuration
+# Install with: pre-commit install
+# Run manually on all files: pre-commit run --all-files
+# Skip for a commit (emergency): git commit --no-verify
+#
+# This validates Python syntax and ensures consistent code style
+
+repos:
+  - repo: local
+    hooks:
+      - id: python-syntax-check
+        name: Python Syntax Validation
+        entry: python3 -m py_compile
+        language: system
+        files: \.py$
+        pass_filenames: true
+        description: Validates Python syntax (catches IndentationError, SyntaxError, etc.)
+
+      - id: no-tabs-in-python
+        name: No Tabs in Python Files
+        entry: bash -c 'for f in "$@"; do if grep -q $"\\t" "$f"; then echo "ERROR: $f contains tabs - use 4 spaces instead"; exit 1; fi; done'
+        language: system
+        files: \.py$
+        pass_filenames: true
+        require_serial: true
+        description: Ensures Python files use spaces, not tabs
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        files: \.(py|txt|json|md)$
+      - id: end-of-file-fixer
+        files: \.(py|txt|json|md)$
+      - id: check-json
+        files: \.json$

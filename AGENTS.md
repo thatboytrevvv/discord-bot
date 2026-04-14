@@ -55,6 +55,39 @@ ruff check --fix bots/
 ruff format bots/
 ```
 
+### Git Hooks
+
+Pre-commit hooks are configured to validate Python syntax and code style before each commit.
+This catches errors like mixed indentation (tabs/spaces), syntax errors, and trailing whitespace.
+
+**Setup (run once after cloning):**
+
+```bash
+# Run the setup script
+./setup-hooks.sh
+
+# Or manually:
+pip install pre-commit
+pre-commit install
+```
+
+**Usage:**
+
+```bash
+# Hooks run automatically on git commit
+# To run manually on all files:
+pre-commit run --all-files
+
+# To skip hooks for an emergency commit:
+git commit --no-verify
+```
+
+The hooks validate:
+- Python syntax (catches IndentationError, SyntaxError, etc.)
+- No tabs in Python files (must use 4 spaces)
+- No trailing whitespace
+- Valid JSON files
+
 ### Testing
 
 Currently no test suite exists. When adding tests:
