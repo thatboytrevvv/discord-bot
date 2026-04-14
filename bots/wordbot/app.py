@@ -714,10 +714,10 @@ def send_word_of_the_day():
         timeout=10,
     )
 
-	if response.status_code == 204 or response.status_code == 200:
-		print(f"Successfully sent word: {word}")
-		exit(0)
-	else:
+    if response.status_code == 204 or response.status_code == 200:
+        print(f"Successfully sent word: {word}")
+        exit(0)
+    else:
         print(f"Failed to send word: {word}")
         print(f"Status code: {response.status_code}")
         print(f"Response: {response.text}")
