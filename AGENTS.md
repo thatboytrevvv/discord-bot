@@ -7,6 +7,10 @@ This document provides guidelines for working with the Discord Bots monorepo.
 ```
 discord-bot/
 bots/
+├── funfacts/         # Random fun fact (daily)
+│   ├── app.py
+│   ├── railway.json
+│   └── requirements.txt
 ├── goodmorning/      # Daily good morning message (Mondays)
 │   ├── app.py
 │   ├── railway.json
@@ -72,7 +76,7 @@ pytest bots/goodmorning/test_app.py::test_send_morning_message
 ## Code Style
 
 ### Formatting
-- Use tabs for indentation (not spaces)
+- Use 4 spaces for indentation (not tabs)
 - Maximum line length: 100 characters
 - Use double quotes for strings
 - Trailing commas in multi-line collections
@@ -99,19 +103,19 @@ import requests
 ### Function Structure
 ```python
 def function_name():
-	"""Docstring describing what the function does."""
-	# Implementation
-	pass
+    """Docstring describing what the function does."""
+    # Implementation
+    pass
 
 
 def main_function():
-	"""Main entry point for the bot."""
-	try:
-		result = do_something()
-		print(f"Success: {result}")
-	except Exception as e:
-		print(f"Error: {e}")
-		exit(1)
+    """Main entry point for the bot."""
+    try:
+        result = do_something()
+        print(f"Success: {result}")
+    except Exception as e:
+        print(f"Error: {e}")
+        exit(1)
 ```
 
 ### Error Handling
